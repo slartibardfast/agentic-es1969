@@ -1,16 +1,29 @@
 # 0002 — Distribution package (with the gameport driver)
 
-Produce installable distribution `.zip`s in CI, one per architecture, that bundle
-the built driver plus everything a user needs to install it — and add the 64-bit
-MPU-401 **gameport driver** to the 64-bit package.
+Produce installable distribution `.zip`s in CI, one per architecture, bundling the
+built driver plus what a user needs to install it — and add the 64-bit MPU-401
+**gameport driver** to the 64-bit package.
 
-The gameport driver is a prebuilt, Microsoft-signed inbox enumerator
-(`src/gameport/GameEnum.sys`, machine type **x64**) with its own `gameport.inf`
-(`NTamd64` sections only). It exists because 64-bit Windows ships no gameport
-driver; 32-bit Windows has one inbox, so the gameport belongs in the **x64 package
-only**.
+The package ships **unsigned** (`call/0003`): no catalog or certificate; users
+enable test-signing and accept the unsigned-publisher prompt.
 
-## Package manifest (answers "any others?")
+## The gameport driver
+
+`src/gameport/GameEnum.sys` is a **reconstruction of Microsoft's generic Game Port
+Enumerator (`gameenum.sys`)**, rebuilt for **x64** (its version info carries
+Microsoft's copyright; the embedded PDB path is
+`…essaudio\legacy\gameenum\…objfre_wnet_AMD64\amd64`). It is **not** ESS-specific and
+sets **no** ESS registers — it only enumerates the standard gameport so a joystick
+attaches. The ESS gameport/MPU-401 hardware is driven by `es1969.sys` itself
+(`FLAG_NOGAMEPORT`, `m_pJoystickBase` / `m_pMPU401Base`, the `MPU401_REG_*` writes).
+
+It is **x64-only on purpose**: 32-bit Windows (2000/XP) ships `gameenum.sys` inbox,
+so the 32-bit package needs no gameport driver; 64-bit Windows dropped it, which is
+why the reconstruction exists. Because the binary is Microsoft-derived, the 64-bit
+zip carries a `NOTICE` recording its provenance (`call/0003`-style honesty; bundling
+chosen as upstream does).
+
+## Package manifest
 
 Per-architecture `es1969-<arch>.zip`:
 
@@ -18,43 +31,32 @@ Per-architecture `es1969-<arch>.zip`:
 |------|--------|:--:|:--:|
 | `es1969.sys` | built by milestone 0001 CI | ✓ | ✓ |
 | `es1969.inf` | repo (`src/win2k`) | ✓ | ✓ |
-| `es1969.cat` | **generated** (`inf2cat`) + signed | ✓ | ✓ |
-| `es1969.cer` | the public self-signing certificate | ✓ | ✓ |
-| `install_cert.cmd` | repo (`release/`) | ✓ | ✓ |
-| `README` / install guide | repo (trimmed) | ✓ | ✓ |
-| `GameEnum.sys` | repo (`src/gameport`, x64, MS-signed) | — | ✓ |
+| `INSTALL.txt` | generated (test-signing install guide) | ✓ | ✓ |
+| `GameEnum.sys` | repo (`src/gameport`, x64, MS-derived) | — | ✓ |
 | `gameport.inf` | repo (`src/gameport`) | — | ✓ |
+| `NOTICE` | generated (gameport provenance) | — | ✓ |
 
-The `.cat` and `.cer` are the items beyond the `.inf` that a self-signed driver
-needs: Windows validates the driver against the catalog, and the certificate is
-what `install_cert.cmd` adds to `TrustedPublisher` so the self-signed catalog is
-trusted.
+No `es1969.cat` / `es1969.cer` / `install_cert.cmd` — the package is unsigned
+(`call/0003`). Adopting a signing approach later only adds the `.cat` + `.cer`.
 
 - **Who** — Rex (x64, wants the gameport on modern Windows), Morgan (32-bit), and
   Dana, who cuts a ready-to-install download instead of assembling it by hand.
 - **What** — a packaging step in the `es1969` CI (extending milestone 0001's
   `build-driver` workflow) that assembles each `.zip` and uploads it; the 64-bit
   `.zip` includes the gameport driver.
-- **Why** — `call/0002` (the adoption); a downloadable package is what the personas
-  actually install.
+- **Why** — `call/0002` (adoption) and `call/0003` (ship unsigned).
 
 ## Done when
 
 - CI produces `es1969-x86.zip` and `es1969-x64.zip` artifacts with the manifest
-  files above; the x64 zip includes `GameEnum.sys` + `gameport.inf`.
-- The driver `.sys` and a generated `es1969.cat` are test-signed, and `es1969.cer`
-  (the matching public cert) installs cleanly via `install_cert.cmd`.
-- A short install `README` ships inside each zip.
+  files above; the x64 zip includes `GameEnum.sys` + `gameport.inf` + `NOTICE`.
+- Each zip carries an `INSTALL.txt` describing the test-signing install path.
 
-## Open questions to resolve during the work
+## Resolved / notes
 
-- **Signing / certificate strategy** (the main decision). The repo ships no cert —
-  the upstream maintainer signs locally. Options: (a) CI generates a per-build
-  self-signed cert (`New-SelfSignedCertificate`), signs the `.sys`/`.cat`, and
-  exports the `.cer` — no secrets, but the cert changes each build; (b) a stable
-  self-signed cert with the `.pfx` held as a CI secret and the `.cer` committed; or
-  (c) ship unsigned and document enabling test-signing.
-- **Catalog tooling.** `inf2cat` ships with the modern WDK, not the legacy DDK used
-  for the build; the packaging step may need a separate WDK/SDK install on the runner.
-- **`sbemul.sys`.** `es1969.inf` lists it under `NTMPDriver` (SB DOS-box emulation);
-  confirm whether it is an inbox driver or must be bundled.
+- **Signing** — ship unsigned (`call/0003`).
+- **Gameport licensing** — bundle the Microsoft-derived `GameEnum.sys` with a
+  `NOTICE`, as upstream does.
+- **32-bit gameport** — not needed; inbox on 32-bit Windows.
+- **`sbemul.sys`** — referenced by `es1969.inf` for SB DOS-box emulation; it is a
+  Windows-provided component, not bundled.
