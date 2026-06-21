@@ -1,0 +1,4 @@
+# Paths excluded from the host-lint naming and prose audits.
+# The append-only record is history, not authored prose: it is the agent's own
+# working memory and is never rewritten (see CLAUDE.md, the Record layer).
+MEMORY.md

@@ -1,0 +1,47 @@
+[receipt "classify"]
+    disposition = done
+    evidence = classify . = a; es1969 has its own history+remotes so it was embedded as the Where room, not adopted in place (call/0002)
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
+
+[receipt "adopt"]
+    disposition = done
+    evidence = .host stamp written: template host-template @ b6aa7de, adopted 2026-06-21
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
+
+[receipt "embed" "es1969"]
+    disposition = done
+    evidence = .host-software pin 5ab89a4; software/es1969/main materialized at the pin; software --check ok
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
+
+[receipt "remap"]
+    disposition = skip
+    reason = no ordinal-named files in the host; host-lint --all clean, so no rename dictionary was needed
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
+
+[receipt "verify"]
+    disposition = done
+    evidence = validate plan/ + call/ ok; software --check at pin; book --check renders every room; commit-msg hook blocks tells
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
+
+[receipt "publish"]
+    disposition = done
+    evidence = host-lifecycle book . renders 15 pages, book --check ok; .github/workflows/mdbook.yml wired
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
+
+[receipt "upgrade"]
+    disposition = done
+    evidence = baseline at adopted revision; upgrade lists 0 pending out-of-order entries
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
+
+[receipt "release" "es1969"]
+    disposition = skip
+    reason = no host-cut release yet; the pin tracks the existing upstream signed release tag 20240404
+    tool = host-lifecycle@0.19.0
+    recorded = 2026-06-21
