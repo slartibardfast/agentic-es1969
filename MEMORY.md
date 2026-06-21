@@ -42,3 +42,22 @@ corrects it and points back. Excluded from the host-lint audits via `.host-linti
 - The CI workflow belongs in the `es1969` software repo (CI lives with the code),
   not the host. Software-discipline applies: push the worktree to
   `slartibardfast/es1969` first, then advance the `.host-software` pin in the host.
+
+## 2026-06-21 — Milestone 0001 scope: three lanes, must load on Win2K/XP RTM
+
+- Hard constraint: the NT 32-bit driver must load on **Windows 2000 RTM and XP RTM**
+  (no SPs). The modern WDK10 toolset (`WindowsKernelModeDriver10.0`,
+  `TargetVersion=Windows10`) used by the `vs2019` project stamps a too-high PE
+  subsystem version and links modern imports, so it will NOT load there. First CI
+  attempt (`build-driver.yml` with WDK10 + choco WDK) was the wrong path and was
+  canceled.
+- Correct approach: build with the **legacy WinDDK (3790)** via `src/win2k/sources`,
+  target `W2K` (subsystem 5.00, loads Win2K RTM upward) for x86 and `WNET AMD64`
+  for x64. Verify the PE subsystem/OS version per binary as the CI-checkable RTM
+  condition.
+- Third lane required: **Windows 98SE/ME** (Win9x WDM). The `es1969.inf` already
+  has `$CHICAGO$` Win9x sections. Toolchain for the Win9x lane is an open question
+  (Win98/Me DDK vs Win2K DDK); flagged in the milestone.
+- es1969 commit `92ec39c` carries the (wrong-toolset) WDK10 workflow on `main`; it
+  will be replaced by the legacy-DDK three-lane workflow. The host `.host-software`
+  pin is still `5ab89a4` and will advance only once the lanes are green.

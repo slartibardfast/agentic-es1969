@@ -1,46 +1,56 @@
 # 0001 — Windows driver CI builds
 
-Bring up a GitHub Actions build for the ES1969 driver covering both target
-architectures:
+Bring up a GitHub Actions build for the ES1969 driver across **three lanes**, one
+per Windows family it must serve. The driver is the WDM/portcls audio miniport
+under `src/win2k`; its `es1969.inf` already carries both the `$CHICAGO$` (Win9x)
+and `NTamd64` install sections, so one source tree targets all three.
 
-- **32-bit (x86)** — for Windows 2000 and Windows XP.
-- **64-bit (x64)** — for Windows XP x64 and Windows Server 2003 x64 (and later
-  64-bit Windows).
+| Lane | Target OS | Bitness | Build |
+|------|-----------|---------|-------|
+| **Win9x** | Windows 98SE / ME | 32-bit (x86) | Win9x-capable WDM build |
+| **NT x86** | Windows 2000 RTM, Windows XP RTM (and later 32-bit) | 32-bit (x86) | legacy WinDDK, `W2K` target |
+| **NT x64** | Windows XP x64 / Server 2003 x64 (and later 64-bit) | 64-bit (x64) | legacy WinDDK, `WNET AMD64` target |
 
-The buildable component is the WDM driver under `src/win2k` (its `vs2019`
-solution and `es1969.vcxproj`), which uses the `WindowsKernelModeDriver10.0`
-platform toolset and already declares `Win32` and `x64` project configurations.
-CI drives `msbuild` with the WDK on a Windows runner, once per architecture, and
-publishes the resulting `es1969.sys` (with its `.inf`) as a build artifact.
+## Hard constraint — Windows 2000 RTM and Windows XP RTM
 
-- **Who** — Morgan (Windows 2000/XP, 32-bit) and Rex (XP/2003 x64 and later
-  64-bit), who get tested, downloadable driver builds per architecture; and Dana,
-  who gets a green build gate on every change instead of a manual local build.
-- **What** — a workflow **in the `es1969` software repo** (CI for the software
-  lives with the software, verified by that repo's own CI), building
-  `Release|Win32` and `Release|x64` and uploading both `.sys` artifacts. No
-  behavioural (`.allium`) or temporal (`.tla`) spec is in scope yet; if one is
-  added it lives with the code, not here.
-- **Why** — `call/0002` (the adoption) and `call/0001` (the reproducibility
-  exemption this milestone moves toward retiring: a pinned, attested CI build is
-  the path to recording a `[build "es1969" "windows"]` recipe in `.host-software`
-  and dropping `repro-exempt`). The 64-bit build is the project's original reason
-  for existing — no signed 64-bit ESS driver ships for modern Windows.
+The NT x86 driver **must load and run on Windows 2000 RTM and Windows XP RTM** (no
+service packs). That rules out the modern WDK10 toolset (`WindowsKernelModeDriver10.0`,
+`TargetVersion=Windows10`) used by the `vs2019` project: it stamps a high PE
+subsystem/OS version that the Win2K and XP RTM loaders reject, and links kernel
+imports those builds lack. The lane therefore builds with the **legacy WinDDK**
+(Server 2003 / build 3790) using its `W2K` target, which produces an `es1969.sys`
+with subsystem version `5.00` — accepted by Win2K RTM upward. This is exactly what
+`src/win2k/sources` (a DDK `build` recipe: `portcls.lib`, `stdunk.lib`,
+`libcntpr.lib`) is set up for.
+
+- **Who** — Morgan (98SE/ME and 2000/XP, 32-bit), Rex (x64 and later), and Dana
+  (a green build gate per lane).
+- **What** — workflows **in the `es1969` repo** building all three lanes and
+  uploading each `es1969.sys` + `es1969.inf` as a named artifact. No `.allium` /
+  `.tla` spec is in scope yet.
+- **Why** — `call/0002` (adoption) and `call/0001` (a pinned, attested per-lane
+  build is the path to recording a `[build "es1969" "windows"]` recipe and
+  retiring `repro-exempt`).
 
 ## Done when
 
-- A workflow in the `es1969` repo builds `Release|Win32` and `Release|x64` green
-  on push and pull request (WDK + `msbuild`, matrix over the two platforms).
-- Each build uploads its `es1969.sys` and `es1969.inf` as a named artifact.
-- The host advances the `.host-software` pin to the `es1969` commit that carries
-  the workflow (software-discipline: push the worktree first, then re-pin).
+- CI builds all three lanes green on push and pull request.
+- Each lane uploads its `es1969.sys` (+ `es1969.inf`) as an artifact.
+- A PE-header check asserts each binary's subsystem/OS version matches its target
+  (Win9x ≈ 4.x; NT x86 = 5.00; NT x64 = 5.02) — the necessary, CI-checkable
+  condition for RTM loadability.
+- The driver is confirmed to load on **Windows 2000 RTM** and **Windows XP RTM**
+  (VM or hardware; likely a manual acceptance step owned by Dana, since automating
+  a Win2K RTM VM in CI is impractical).
+- The host advances the `.host-software` pin to the green `es1969` commit.
 
 ## Open questions to resolve during the work
 
-- Which WDK / Visual Studio version the GitHub `windows-` runner provides, and how
-  to install the `WindowsKernelModeDriver10.0` toolset there.
-- Whether the WDK10 toolchain can target Windows 2000/XP down-level, or whether
-  the 32-bit path needs the older `src/win2k` DDK `SOURCES` build instead of the
-  `vs2019` project.
-- Whether to also build the MPU-401 gameport driver (`src/gameport`) and whether
-  to test-sign artifacts in CI.
+- **Win9x lane toolchain.** Which DDK builds a 98SE/ME-loadable WDM driver (the
+  Win98/Me DDK, or the Win2K DDK targeting Win9x), and whether `portcls` on
+  98SE/ME exports everything the miniport uses. Whether one subsystem-5.0 binary
+  can serve both Win9x and NT x86, or Win9x needs its own build.
+- **Legacy WinDDK acquisition in CI.** A stable source for the 3790 DDK ISO (and
+  the Win9x DDK), and how to set up its `build` environment on a modern runner.
+- **Runtime acceptance.** How far CI can go (build + PE check) versus what must be
+  a manual load test on Win2K RTM / XP RTM.
