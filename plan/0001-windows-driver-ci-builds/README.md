@@ -44,6 +44,22 @@ with subsystem version `5.00` — accepted by Win2K RTM upward. This is exactly 
   a Win2K RTM VM in CI is impractical).
 - The host advances the `.host-software` pin to the green `es1969` commit.
 
+## Progress (2026-06-21)
+
+- **NT x64 lane — done.** `nt-x64-wnet` builds `es1969.sys` green (subsystem 5.02,
+  verified in CI) and uploads it.
+- **NT x86 lane — done.** `nt-x86-win2k` builds green with **subsystem 5.00**
+  (verified in CI), the load condition for Windows 2000 RTM and XP RTM. Required:
+  lowering the makefile OS guard to `0x500`, providing `stdunk.lib` for the W2K
+  lib dir, guarding the XP-only `IDrmAudioStream` DRM path behind `ES_NT_TARGET`,
+  and aliasing the Win2K `IAdapterPowerManagement` IID typo. The driver is built
+  with the self-contained legacy WinDDK 3790.1830 (no Visual Studio).
+- **Win9x lane — not started.** Needs a Win9x-capable toolchain (VC6 + Win2K DDK,
+  per the WDMHDA recipe); awkward in CI. Open.
+- **Runtime acceptance — pending.** CI confirms the build and the PE subsystem
+  version; loading on real Windows 2000 RTM / XP RTM is still a manual VM/hardware
+  step (Dana).
+
 ## Open questions to resolve during the work
 
 - **Win9x lane toolchain.** Which DDK builds a 98SE/ME-loadable WDM driver (the

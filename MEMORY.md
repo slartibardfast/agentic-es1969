@@ -61,3 +61,21 @@ corrects it and points back. Excluded from the host-lint audits via `.host-linti
 - es1969 commit `92ec39c` carries the (wrong-toolset) WDK10 workflow on `main`; it
   will be replaced by the legacy-DDK three-lane workflow. The host `.host-software`
   pin is still `5ab89a4` and will advance only once the lanes are green.
+
+## 2026-06-21 — Two NT lanes green (Win2K x86 + XP/2003 x64), pin advanced
+
+- Both NT lanes build green in CI on `slartibardfast/es1969` with the legacy WinDDK
+  3790.1830 (fetched sparse; self-contained, no VS): `nt-x86-win2k` (subsystem
+  **5.00**, verified — loads on Win2K RTM / XP RTM) and `nt-x64-wnet` (subsystem
+  5.02). Both upload `es1969.sys` artifacts.
+- Getting the Win2K x86 build required source work in `src/win2k`: lower the
+  makefile OS guard `0x501`→`0x500`; copy `stdunk.lib` into the W2K lib dir (the
+  DDK archive omits it there); guard the XP-only `IDrmAudioStream` DRM path behind
+  a new `ES_NT_TARGET` compiler define (passed via `sources`); alias the Win2K
+  `IAdapterPowerManagement` IID/typedef typo. Guards keep DRM for the modern
+  vs2019 build (where `ES_NT_TARGET` is undefined).
+- Advanced the host `.host-software` pin `5ab89a4` → `cf248f8` (software-discipline:
+  worktree pushed first). `repro-exempt` (call/0001) still stands — the build is
+  not yet hash-attested.
+- **Remaining:** the Win9x (98SE/ME) lane (VC6 + Win2K DDK) and a real load test on
+  Win2K RTM / XP RTM (manual, VM/hardware).
