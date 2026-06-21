@@ -79,3 +79,7 @@ corrects it and points back. Excluded from the host-lint audits via `.host-linti
   not yet hash-attested.
 - **Remaining:** the Win9x (98SE/ME) lane (VC6 + Win2K DDK) and a real load test on
   Win2K RTM / XP RTM (manual, VM/hardware).
+- **Decision (2026-06-21):** the Win9x lane is **deferred** as a tracked item in
+  milestone 0001 (VC6 + Win2K DDK is fragile on hosted CI). A cheap path to try
+  later: see whether the existing subsystem-5.00 x86 `es1969.sys` loads on 98SE/ME
+  (WDM was designed binary-portable Win98→Win2K; the INF already has Win9x sections).

@@ -54,8 +54,12 @@ with subsystem version `5.00` — accepted by Win2K RTM upward. This is exactly 
   lib dir, guarding the XP-only `IDrmAudioStream` DRM path behind `ES_NT_TARGET`,
   and aliasing the Win2K `IAdapterPowerManagement` IID typo. The driver is built
   with the self-contained legacy WinDDK 3790.1830 (no Visual Studio).
-- **Win9x lane — not started.** Needs a Win9x-capable toolchain (VC6 + Win2K DDK,
-  per the WDMHDA recipe); awkward in CI. Open.
+- **Win9x lane — deferred (tracked).** Needs a Win9x-capable toolchain (VC6 + the
+  Win2K DDK, per the WDMHDA recipe), which is fragile on modern hosted CI runners.
+  Deferred by decision on 2026-06-21 to keep it a tracked open item rather than
+  block the two green NT lanes. Revisit once the toolchain approach is chosen (or
+  test whether the existing subsystem-5.00 x86 binary loads on 98SE/ME, since the
+  `es1969.inf` already carries the `$CHICAGO$` Win9x sections).
 - **Runtime acceptance — pending.** CI confirms the build and the PE subsystem
   version; loading on real Windows 2000 RTM / XP RTM is still a manual VM/hardware
   step (Dana).
