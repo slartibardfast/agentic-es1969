@@ -27,3 +27,18 @@ corrects it and points back. Excluded from the host-lint audits via `.host-linti
 - The allium and specula lanes are wired but inert: `es1969` carries no `.allium`
   or `.tla` spec yet, so no lane is active. Author a spec through the tool's skills
   before relying on its lane (the spec lives with the code, in the software repo).
+
+## 2026-06-21 — Redefined milestone 0001 as Windows driver CI builds
+
+- Milestone `0001` is now "bring up a GitHub CI build" for the ES1969 driver on two
+  targets: 32-bit (x86) for Windows 2000/XP, and 64-bit (x64) for Windows XP/2003
+  x64. Renamed `plan/0001-reproducible-wdk-build` → `plan/0001-windows-driver-ci-builds`.
+  The previous "reproducible WDK build" framing folds in as the downstream payoff
+  (a pinned, attested CI build is how `call/0001`'s repro-exempt gets retired).
+- The buildable component is the WDM driver under `src/win2k` (`vs2019` solution,
+  `es1969.vcxproj`): toolset `WindowsKernelModeDriver10.0`, with `Win32` and `x64`
+  project configurations already declared. Plan: `msbuild` Release|Win32 and
+  Release|x64 with the WDK on a Windows runner.
+- The CI workflow belongs in the `es1969` software repo (CI lives with the code),
+  not the host. Software-discipline applies: push the worktree to
+  `slartibardfast/es1969` first, then advance the `.host-software` pin in the host.
