@@ -83,3 +83,17 @@ corrects it and points back. Excluded from the host-lint audits via `.host-linti
   milestone 0001 (VC6 + Win2K DDK is fragile on hosted CI). A cheap path to try
   later: see whether the existing subsystem-5.00 x86 `es1969.sys` loads on 98SE/ME
   (WDM was designed binary-portable Win98→Win2K; the INF already has Win9x sections).
+
+## 2026-06-22 — Milestone 0002: distribution zips green; pin advanced
+
+- CI now packages per-arch distribution zips (green): `es1969-x86.zip` (es1969.sys +
+  es1969.inf + INSTALL.txt) and `es1969-x64.zip` (+ GameEnum.sys + gameport.inf +
+  NOTICE). Shipped **unsigned** (`call/0003`); users enable test-signing.
+- The gameport `GameEnum.sys` is a reconstruction of Microsoft's generic
+  `gameenum.sys` rebuilt for x64 (PDB path `…essaudio\legacy\gameenum\…AMD64`); it is
+  **not** ESS-specific. `es1969.sys` itself programs the ESS Solo-1 gameport via PCI
+  config space: `ESM_LEGACY_AUDIO_CONTROL` (0x40, set bit 2 to enable legacy
+  gameport) and `ESM_GAMEPORT` (0x20, write base 0x201) — see `adapter.cpp`
+  `ConfigJoyPort` and `common.cpp` (`AccessConfigSpace`). Gated by the `NoGamePort`
+  registry flag. Same code on x86/x64; 32-bit needs no bundled enumerator (inbox).
+- Advanced `.host-software` pin `cf248f8` → `b6a921e`.

@@ -52,6 +52,13 @@ No `es1969.cat` / `es1969.cer` / `install_cert.cmd` — the package is unsigned
   files above; the x64 zip includes `GameEnum.sys` + `gameport.inf` + `NOTICE`.
 - Each zip carries an `INSTALL.txt` describing the test-signing install path.
 
+## Progress (2026-06-22)
+
+- **Done.** CI (`build-driver` on `slartibardfast/es1969`) produces both package
+  artifacts green: `es1969-x86.zip` (es1969.sys + es1969.inf + INSTALL.txt) and
+  `es1969-x64.zip` (the same plus GameEnum.sys + gameport.inf + NOTICE). Host pin
+  advanced to the es1969 commit carrying the packaging.
+
 ## Resolved / notes
 
 - **Signing** — ship unsigned (`call/0003`).

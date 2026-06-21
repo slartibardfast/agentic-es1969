@@ -7,7 +7,7 @@
 [software "es1969"]
 	url          = https://github.com/slartibardfast/es1969.git
 	branch       = main
-	pin          = cf248f83bc8cef5adbfefe5c429d6b377f1b6efb
+	pin          = b6a921e4ae2a905a811ccc08b61766dd79ac2f0e
 	# Migrated software: a self-signed ES1969 / gameport kernel driver built with
 	# the Windows WDK (SOURCES/DIRS, vs2019 .sln). It is not byte-reproducible on a
 	# Linux host, so it carries the escape clause until the build is pinned. See:
