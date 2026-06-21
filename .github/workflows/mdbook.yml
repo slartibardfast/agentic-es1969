@@ -37,3 +37,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./book
+          # Keep gh-pages a single orphan commit (no accumulating history), so an
+          # earlier rendered page can never linger in the published branch's history.
+          force_orphan: true
